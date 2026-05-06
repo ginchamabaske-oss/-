@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プレデター育成計画</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8e8ec;
+    --muted: #7a7a8c;
+    --accent: #7c6af7;
+    --accent2: #4fc9a4;
+    --warn: #f0a04b;
+    --danger: #e05a5a;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Noto Sans JP', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+  /* Header */
+  .header {
+    padding: 48px 40px 32px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(124,106,247,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+  .header-meta {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .header-meta span::before { content: '— '; }
+
+  /* Nav tabs */
+  .nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-family: var(--sans);
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Main layout */
+  .main { max-width: 1100px; margin: 0 auto; padding: 32px 40px; }
+
+  /* Section: 育成計画 */
+  .member-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .member-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .member-card:hover { border-color: var(--border2); }
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .card-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .card-meta { font-size: 12px; color: var(--muted); }
+  .level-row {
+    display: flex; align-items: center; gap: 6px; margin-top: 4px;
+  }
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+  }
+  .pill.target { border-color: var(--accent); color: var(--accent); }
+  .arrow { font-size: 11px; color: var(--muted); }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    line-height: 1.4;
+  }
+  .tag-s { background: rgba(79,201,164,0.12); color: #4fc9a4; border: 1px solid rgba(79,201,164,0.2); }
+  .tag-w { background: rgba(224,90,90,0.1); color: #e07070; border: 1px solid rgba(224,90,90,0.2); }
+
+  .actions-list { margin-top: 4px; }
+  .action-item {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: 12px; color: var(--muted);
+    line-height: 1.6; margin-bottom: 6px;
+    padding: 6px 10px;
+    background: var(--surface2);
+    border-radius: 8px;
+  }
+  .action-icon { color: var(--accent); flex-shrink: 0; margin-top: 1px; font-size: 13px; }
+  .judge-bar {
+    margin-top: 14px;
+    padding: 8px 10px;
+    border-left: 2px solid var(--accent);
+    font-size: 11px;
+    color: var(--muted);
+    background: rgba(124,106,247,0.06);
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Section: 1on1 */
+  .member-tabs {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .m-tab {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    transition: all 0.15s;
+    font-family: var(--sans);
+  }
+  .m-tab:hover { color: var(--text); border-color: var(--border2); }
+  .m-tab.active { background: var(--accent); color: #fff; border-color: transparent; }
+
+  .agenda-panel { display: none; }
+  .agenda-panel.active { display: block; }
+
+  .agenda-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 680px;
+  }
+  .agenda-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px; padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-list { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: flex; gap: 14px;
+  }
+  .step-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(124,106,247,0.15);
+    border: 1px solid rgba(124,106,247,0.3);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .step-time {
+    font-family: var(--mono);
+    font-size: 10px; color: var(--muted);
+    margin-bottom: 8px; letter-spacing: 0.05em;
+  }
+  .step-q {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border-left: 2px solid var(--accent2);
+  }
+  .focus-tag {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: rgba(240,160,75,0.12);
+    color: var(--warn);
+    border: 1px solid rgba(240,160,75,0.25);
+  }
+
+  /* page section toggle */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* info bar */
+  .info-bar {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-size: 13px; color: var(--muted);
+  }
+  .info-bar span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Predator / 育成計画</div>
+  <h1>部下育成計画 — 6名</h1>
+  <div class="header-meta">
+    <span>週次1on1（15〜20分）</span>
+    <span>判定：等級表に見合ったスキル</span>
+    <span>期間：継続</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-tab active" onclick="switchPage('plan', this)">育成計画</button>
+  <button class="nav-tab" onclick="switchPage('agenda', this)">1on1アジェンダ</button>
+</div>
+
+<div class="main">
+
+  <!-- 育成計画 -->
+  <div id="plan" class="page active">
+    <div class="info-bar">
+      <span><span class="dot"></span>緑タグ = 強み</span>
+      <span><span class="dot" style="background:var(--danger)"></span>赤タグ = 課題</span>
+      <span><span class="dot" style="background:var(--accent2)"></span>週次MTGで取り組むアクション</span>
+    </div>
+    <div class="member-grid">
+
+      <!-- 大森 -->
+      <div class="member-card">
+        <div class="card-top">
+          <div class="avatar" style="background:rgba(79,201,164,0.15); color:#4fc9a4;">大森</div>
+          <div>
+            <div class="card-name">大森</div>
+            <div class="card-meta">人事</div>
+            <div class="level-row">
+              <span class="pill">等級3</span>
+              <span class="arrow">→</span>
+              <span class="pill target">目標 等級4</span>
+            </div>
+          </div>
+        </div>
+        <div class="section-label">強み</div>
+        <div class="tags">
+          <span class="tag tag-s">やりきり力</span>
+          <span class="tag tag-s">面接クロージング</span>
+          <span class="tag tag-s">候補者見極め</span>
+        </div>
+        <div class="section-label">課題</div>
+        <div class="tags">
+          <span class="tag tag-w">数値分析</span>
+          <span class="tag tag-w">課題特定</span>
+          <span class="tag tag-w">アクションの引き出し</span>
+          <span class="tag tag-w">戦略立案</span>
+        </div>
+        <div class="section-label">週次MTGで取り組むこと</div>
+        <div class="actions-list">
+          <div class="action-item"><span class="action-icon">▸</span>KPIを毎週持参・自分で読み解いて報告させる</div>
+          <div class="action-item"><span class="action-icon">▸</span>「この数字で何の施策が打てる？」を毎回問う</div>
+          <div class="action-item"><span class="action-icon">▸</span>月次で採用戦略の仮説を言語化・提出させる</div>
+        </div>
+        <div class="judge-bar">判定：採用KPIを自分で読み、施策を提案・実行・報告できる状態</div>
+      </div>
+
+      <!-- 李 -->
+      <div class="member-card">
+        <div class="card-top">
+          <div class="avatar" style="background:rgba(124,106,247,0.15); color:#9b8ff7;">李</div>
+          <div>
+            <div class="card-name">李</div>
+            <div class="card-meta">人事</div>
+            <div class="level-row">
+              <span class="pill">等級3</span>
+              <span class="arrow">→</span>
+              <span class="pill target">目標 等級4</span>
+            </div>
+          </div>
+        </div>
+        <div class="section-label">強み</div>
+        <div class="tags">
+          <span class="tag tag-s">指示があれば完遂できる</span>
+          <span class="tag tag-s">誠実な実行力</span>
+        </div>
+        <div class="section-label">課題</div>
+        <div class="tags">
+          <span class="tag tag-w">やりきり（自走）</span>
+          <span class="tag tag-w">主体的な行動</span>
+        </div>
+        <div class="section-label">週次MTGで取り組むこと</div>
+        <div class="actions-list">
+          <div class="action-item"><span class="action-icon">▸</span>「今週自分で決めて動いたこと」を必ず1つ報告させる</div>
+          <div class="action-item"><span class="action-icon">▸</span>小さな決断を毎週1つ任せ、結果を振り返る</div>
+          <div class="action-item"><span class="action-icon">▸</span>動けなかった理由を壁打ちし、ブロックを外す</div>
+        </div>
+        <div class="judge-bar">判定：指示なしで課題を発見し、主体的に業務を推進・改善できる状態</div>
+      </div>
+
+      <!-- 土海 -->
+      <div class="member-card">
+        <div class="card-top">
+          <div class="avatar" style="background:rgba(240,160,75,0.15); color:#f0a04b;">土海</div>
+          <div>
+            <div class="card-name">土海</div>
+            <div class="card-meta">人事</div>
+            <div class="level-row">
+              <span class="pill">等級2</span>
+              <span class="arrow">→</span>
+              <span class="pill target">目標 等級3</span>
+            </div>
+          </div>
+        </div>
+        <div class="section-label">強み</div>
+        <div class="tags">
+          <span class="tag tag-s">学生メンバーの巻き込み</span>
+          <span class="tag tag-s">社内イベント推進</span>
+          <span class="tag tag-s">アクション提案</span>
+        </div>
+        <div class="section-label">課題</div>
+        <div class="tags">
+          <span class="tag tag-w">やりきり</span>
+          <span class="tag tag-w">コミット</span>
+          <span class="tag tag-w">成果に狂う姿勢</span>
+        </div>
+        <div class="section-label">週次MTGで取り組むこと</div>
+        <div class="actions-list">
+          <div class="action-item"><span class="action-icon">▸</span>先週のアクション提案を「やり切ったか」毎週確認</div>
+          <div class="action-item"><span class="action-icon">▸</span>「何の数字を動かしたいか」を毎週言語化させる</div>
+          <div class="action-item"><span class="action-icon">▸</span>小さな成功体験を積ませ、コミット感を育てる</div>
+        </div>
+        <div class="judge-bar">判定：KPIを理解し、与えられたアクションを自走で実行・報告できる状態</div>
+      </div>
+
+      <!-- 藤原 -->
+      <div class="member-card">
+        <div class="card-top">
+          <div class="avatar" style="background:rgba(224,90,90,0.12); color:#e07070;">藤原</div>
+          <div>
+            <div class="card-name">藤原</div>
+            <div class="card-meta">SNS / YouTubeディレクター（目標）</div>
+            <div class="level-row">
+              <span class="pill">等級3</span>
+              <span class="arrow">→</span>
+              <span class="pill target">目標 等級4</span>
+            </div>
+          </div>
+        </div>
+        <div class="section-label">強み</div>
+        <div class="tags">
+          <span class="tag tag-s">不明点のキャッチアップ</span>
+          <span class="tag tag-s">動画編集</span>
+          <span class="tag tag-s">編集指導</span>
+          <span class="tag tag-s">台本作成（一部）</span>
+          <span class="tag tag-s">撮影セッティング</span>
+        </div>
+        <div class="section-label">課題</div>
+        <div class="tags">
+          <span class="tag tag-w">推進力</span>
+          <span class="tag tag-w">言語化</span>
+          <span class="tag tag-w">数値分析</span>
+        </div>
+        <div class="section-label">週次MTGで取り組むこと</div>
+        <div class="actions-list">
+          <div class="action-item"><span class="action-icon">▸</span>撮影・編集の意図を毎週言語化させる（ディレクター視点）</div>
+          <div class="action-item"><span class="action-icon">▸</span>再生数・視聴維持率を自分で読み、改善案を提案させる</div>
+          <div class="action-item"><span class="action-icon">▸</span>撮影進行の主導を少しずつ任せ、推進力を実務で育てる</div>
+        </div>
+        <div class="judge-bar">判定：数値から改善を提案し、撮影進行を主導できる状態</div>
+      </div>
+
+      <!-- 永留 -->
+      <div class="member-card">
+        <div class="card-top">
+          <div class="avatar" style="background:rgba(79,201,164,0.12); color:#4fc9a4;">永留</div>
+          <div>
+            <div class="card-name">永留</div>
+            <div class="card-meta">SNS / Instagram・TikTok</div>
+            <div class="level-row">
+              <span class="pill">等級3</span>
+              <span class="arrow">→</span>
+              <span class="pill target">目標 等級4</span>
+            </div>
+          </div>
+        </div>
+        <div class="section-label">強み</div>
+        <div class="tags">
+          <span class="tag tag-s">動画編集</span>
+          <span class="tag tag-s">台本作成</span>
+          <span class="tag tag-s">タスク実行</span>
+          <span class="tag tag-s">数値管理</span>
+          <span class="tag tag-s">FBを取りに行く姿勢</span>
+        </div>
+        <div class="section-label">課題</div>
+        <div class="tags">
+          <span class="tag tag-w">数値分析（深度）</span>
+          <span class="tag tag-w">内藤の管理</span>
+          <span class="tag tag-w">提案力</span>
+          <span class="tag tag-w">成功事例の共有</span>
+        </div>
+        <div class="section-label">週次MTGで取り組むこと</div>
+        <div class="actions-list">
+          <div class="action-item"><span class="action-icon">▸</span>数値を「見る」→「解釈して提案する」へ。毎週1提案</div>
+          <div class="action-item"><span class="action-icon">▸</span>内藤の投稿・数値管理を一部任せ、後輩マネジメント実践</div>
+          <div class="action-item"><span class="action-icon">▸</span>成功した施策を毎週1つチームに言語化・共有させる</div>
+        </div>
+        <div class="judge-bar">判定：数値から改善提案ができ、後輩管理と仕組み化ができる状態</div>
+      </div>
+
+      <!-- 内藤 -->
+      <div class="member-card">
+        <div class="card-top">
+          <div class="avatar" style="background:rgba(200,100,180,0.15); color:#d472be;">内藤</div>
+          <div>
+            <div class="card-name">内藤</div>
+            <div class="card-meta">SNS / Instagram・TikTok</div>
+            <div class="level-row">
+              <span class="pill">等級2</span>
+              <span class="arrow">→</span>
+              <span class="pill target">目標 等級3</span>
+            </div>
+          </div>
+        </div>
+        <div class="section-label">強み</div>
+        <div class="tags">
+          <span class="tag tag-s">動画編集</span>
+          <span class="tag tag-s">台本作成</span>
+          <span class="tag tag-s">タスク実行</span>
+        </div>
+        <div class="section-label">課題</div>
+        <div class="tags">
+          <span class="tag tag-w">不明点のアラート</span>
+          <span class="tag tag-w">FBを取りに行く姿勢</span>
+          <span class="tag tag-w">アドバイス・サポート力</span>
+          <span class="tag tag-w">数値分析</span>
+        </div>
+        <div class="section-label">週次MTGで取り組むこと</div>
+        <div class="actions-list">
+          <div class="action-item"><span class="action-icon">▸</span>「今週困ったこと・迷ったこと」を必ず1つ報告させる</div>
+          <div class="action-item"><span class="action-icon">▸</span>FBをもらいに行った回数・内容を確認・承認・強化</div>
+          <div class="action-item"><span class="action-icon">▸</span>担当投稿の数値を毎週1本読み解いて報告させる</div>
+        </div>
+        <div class="judge-bar">判定：不明点を自ら報告し、KPIを理解して与えられた業務を自走できる状態</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 1on1アジェンダ -->
+  <div id="agenda" class="page">
+    <div class="info-bar">
+      <span><span class="dot"></span>15〜20分 / 週次 / 1on1</span>
+      <span><span class="dot" style="background:var(--accent2)"></span>問い → 本人が答える → 承認 → コミット</span>
+    </div>
+
+    <div class="member-tabs">
+      <button class="m-tab active" onclick="switchMember('a-osm', this)">大森</button>
+      <button class="m-tab" onclick="switchMember('a-ri', this)">李</button>
+      <button class="m-tab" onclick="switchMember('a-tdk', this)">土海</button>
+      <button class="m-tab" onclick="switchMember('a-fj', this)">藤原</button>
+      <button class="m-tab" onclick="switchMember('a-ngd', this)">永留</button>
+      <button class="m-tab" onclick="switchMember('a-nit', this)">内藤</button>
+    </div>
+
+    <!-- 大森 -->
+    <div id="a-osm" class="agenda-panel active">
+      <div class="agenda-card">
+        <div class="agenda-header">
+          <div class="avatar" style="background:rgba(79,201,164,0.15); color:#4fc9a4;">大森</div>
+          <div>
+            <div style="font-size:16px; font-weight:700;">大森 — 1on1アジェンダ</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:3px;">人事 / 等級3 → 4</div>
+          </div>
+        </div>
+        <div class="step-list">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-title">数値報告（自分で読み解く）</div>
+              <div class="step-time">3〜4 min</div>
+              <div class="step-q">「今週のKPIはどうでしたか？数字を見てどう解釈しましたか？」</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-title">課題特定・アクション提案</div>
+              <div class="step-time">5〜6 min</div>
+              <div class="step-q">「その数字から、どんな課題があると思いますか？来週どんな施策を打ちますか？」</div>
+              <div class="focus-tag">重点：戦略思考・アクションの引き出し</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-title">FB・承認・来週コミット</div>
+              <div class="step-time">5〜6 min</div>
+              <div class="step-q">「その施策、やり切れる？来週ここで報告してね」と握る</div>
+            </div>
+          </div>
+        </div>
+        <div class="judge-bar" style="margin-top:20px;">判定：採用KPIを自分で読み、施策を提案・実行・報告できる状態</div>
+      </div>
+    </div>
+
+    <!-- 李 -->
+    <div id="a-ri" class="agenda-panel">
+      <div class="agenda-card">
+        <div class="agenda-header">
+          <div class="avatar" style="background:rgba(124,106,247,0.15); color:#9b8ff7;">李</div>
+          <div>
+            <div style="font-size:16px; font-weight:700;">李 — 1on1アジェンダ</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:3px;">人事 / 等級3 → 4</div>
+          </div>
+        </div>
+        <div class="step-list">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-title">自分で動いたこと報告</div>
+              <div class="step-time">3〜4 min</div>
+              <div class="step-q">「今週、自分で判断して動いたことは何かありましたか？」</div>
+              <div class="focus-tag">重点：自走・やりきり</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-title">詰まったポイントの壁打ち</div>
+              <div class="step-time">5〜6 min</div>
+              <div class="step-q">「動けなかった場面はありましたか？なぜ動けなかったと思いますか？」</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-title">来週の小さなコミット</div>
+              <div class="step-time">5〜6 min</div>
+              <div class="step-q">「来週、自分で決めて動くことを1つ決めてください」と握る</div>
+            </div>
+          </div>
+        </div>
+        <div class="judge-bar" style="margin-top:20px;">判定：指示なしで課題を発見し、主体的に業務を推進・改善できる状態</div>
+      </div>
+    </div>
+
+    <!-- 土海 -->
+    <div id="a-tdk" class="agenda-panel">
+      <div class="agenda-card">
+        <div class="agenda-header">
+          <div class="avatar" style="background:rgba(240,160,75,0.15); color:#f0a04b;">土海</div>
+          <div>
+            <div style="font-size:16px; font-weight:700;">土海 — 1on1アジェンダ</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:3px;">人事 / 等級2 → 3</div>
+          </div>
+        </div>
+        <div class="step-list">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-title">先週のアクション確認</div>
+              <div class="step-time">3〜4 min</div>
+              <div class="step-q">「先週提案したアクション、やり切れましたか？結果はどうでしたか？」</div>
+              <div class="focus-tag">重点：やりきり・コミット確認</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-title">成果への意識を確認</div>
+              <div class="step-time">5〜6 min</div>
+              <div class="step-q">「そのアクションで何の数字を動かしたいですか？成果とつながってますか？」</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-title">来週のコミット宣言</div>
+              <div class="step-time">4〜5 min</div>
+              <div class="step-q">「来週やり切ることを1つ、数字で言えますか？」と具体的に握る</div>
+            </div>
+          </div>
+        </div>
+        <div class="judge-bar" style="margin-top:20px;">判定：KPIを理解し、与えられたアクションを自走で実行・報告できる状態</div>
+      </div>
+    </div>
+
+    <!-- 藤原 -->
+    <div id="a-fj" class="agenda-panel">
+      <div class="agenda-card">
+        <div class="agenda-header">
+          <div class="avatar" style="background:rgba(224,90,90,0.12); color:#e07070;">藤原</div>
+          <div>
+            <div style="font-size:16px; font-weight:700;">藤原 — 1on1アジェンダ</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:3px;">SNS / YouTubeディレクター目標 / 等級3 → 4</div>
+          </div>
+        </div>
+        <div class="step-list">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-title">今週の動画・撮影の振り返り</div>
+              <div class="step-time">3〜4 min</div>
+              <div class="step-q">「今週制作した動画、どんな意図でこの構成にしましたか？」</div>
+              <div class="focus-tag">重点：言語化・ディレクター視点</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-title">数値と改善提案</div>
+              <div class="step-time">5〜6 min</div>
+              <div class="step-q">「再生数・視聴維持率を見て、次の動画で変えることはありますか？」</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-title">推進タスクの確認</div>
+              <div class="step-time">4〜5 min</div>
+              <div class="step-q">「来週の撮影、自分で進行を仕切れそうですか？どう動きますか？」</div>
+            </div>
+          </div>
+        </div>
+        <div class="judge-bar" style="margin-top:20px;">判定：数値から改善提案ができ、撮影進行を主導できる状態</div>
+      </div>
+    </div>
+
+    <!-- 永留 -->
+    <div id="a-ngd" class="agenda-panel">
+      <div class="agenda-card">
+        <div class="agenda-header">
+          <div class="avatar" style="background:rgba(79,201,164,0.12); color:#4fc9a4;">永留</div>
+          <div>
+            <div style="font-size:16px; font-weight:700;">永留 — 1on1アジェンダ</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:3px;">SNS / Instagram・TikTok / 等級3 → 4</div>
+          </div>
+        </div>
+        <div class="step-list">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-title">数値の解釈と提案</div>
+              <div class="step-time">4〜5 min</div>
+              <div class="step-q">「今週の数値、どう読みましたか？来週どんな施策を提案しますか？」</div>
+              <div class="focus-tag">重点：数値分析の深度・提案力</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-title">内藤のマネジメント確認</div>
+              <div class="step-time">4〜5 min</div>
+              <div class="step-q">「内藤さんの投稿・数値、今週どう見ていましたか？何かフォローしましたか？」</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-title">成功事例の共有確認</div>
+              <div class="step-time">4〜5 min</div>
+              <div class="step-q">「今週うまくいったことを、チームに共有できましたか？」</div>
+            </div>
+          </div>
+        </div>
+        <div class="judge-bar" style="margin-top:20px;">判定：数値から改善提案ができ、後輩管理と成功事例の仕組み化ができる状態</div>
+      </div>
+    </div>
+
+    <!-- 内藤 -->
+    <div id="a-nit" class="agenda-panel">
+      <div class="agenda-card">
+        <div class="agenda-header">
+          <div class="avatar" style="background:rgba(200,100,180,0.15); color:#d472be;">内藤</div>
+          <div>
+            <div style="font-size:16px; font-weight:700;">内藤 — 1on1アジェンダ</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:3px;">SNS / Instagram・TikTok / 等級2 → 3</div>
+          </div>
+        </div>
+        <div class="step-list">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-title">困ったこと・迷ったことの報告</div>
+              <div class="step-time">4〜5 min</div>
+              <div class="step-q">「今週、困ったことや迷ったことはありましたか？誰かに相談できましたか？」</div>
+              <div class="focus-tag">重点：アラート習慣・FBを取りに行く姿勢</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-title">担当投稿の数値報告</div>
+              <div class="step-time">4〜5 min</div>
+              <div class="step-q">「今週の投稿、どんな数字でしたか？なぜこの数字だと思いますか？」</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-title">来週のアクション確認</div>
+              <div class="step-time">4〜5 min</div>
+              <div class="step-q">「来週、自分から聞きに行くことを1つ決めてください」と握る</div>
+            </div>
+          </div>
+        </div>
+        <div class="judge-bar" style="margin-top:20px;">判定：不明点を自ら報告し、KPIを理解して与えられた業務を自走できる状態</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function switchPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function switchMember(id, btn) {
+  document.querySelectorAll('.agenda-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.m-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
